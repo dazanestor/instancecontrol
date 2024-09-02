@@ -30,6 +30,12 @@ const getInstanceStatus = async () => {
     }
 };
 
+// Ruta para renderizar la página principal
+app.get('/', (req, res) => {
+    const pageTitle = process.env.PAGE_TITLE || 'Control de EC2';
+    res.render('index', { pageTitle });
+});
+
 // Ruta para obtener el estado de la instancia
 app.get('/status', async (req, res) => {
     try {
