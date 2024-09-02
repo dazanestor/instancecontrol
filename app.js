@@ -1,5 +1,5 @@
 const express = require('express');
-const AWS = require('aws-sdk');
+const { EC2Client, StartInstancesCommand, StopInstancesCommand } = require('@aws-sdk/client-ec2');
 const bodyParser = require('body-parser');
 const path = require('path');
 
@@ -10,43 +10,49 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Configura AWS SDK usando variables de entorno
-AWS.config.update({ region: process.env.AWS_REGION });
+const region = process.env.AWS_REGION;
+const instanceId = process.env.INSTANCE_ID;
 
-const ec2 = new AWS.EC2();
+const ec2Client = new EC2Client({ region });
 
 // Ruta para encender la instancia
-app.post('/start', (req, res) => {
+app.post('/start', async (req, res) => {
     const params = {
-        InstanceIds: [process.env.INSTANCE_ID],
+        InstanceIds: [instanceId],
     };
 
-    ec2.startInstances(params, (err, data) => {
-        if (err) {
-            console.log(err, err.stack);
-            res.status(500).send('Error al encender la instancia');
-        } else {
-            res.send('Instancia encendida');
-        }
-    });
+    const command = new StartInstancesCommand(params);
+
+    try {
+        const data = await ec2Client.send(command);
+        console.log('Instancia encendida:', data);
+        res.send('Instancia encendida');
+    } catch (err) {
+        console.error('Error al encender la instancia:', err);
+        res.status(500).send('Error al encender la instancia');
+    }
 });
 
 // Ruta para apagar la instancia
-app.post('/stop', (req, res) => {
+app.post('/stop', async (req, res) => {
     const params = {
-        InstanceIds: [process.env.INSTANCE_ID],
+        InstanceIds: [instanceId],
     };
 
-    ec2.stopInstances(params, (err, data) => {
-        if (err) {
-            console.log(err, err.stack);
-            res.status(500).send('Error al apagar la instancia');
-        } else {
-            res.send('Instancia apagada');
-        }
-    });
+    const command = new StopInstancesCommand(params);
+
+    try {
+        const data = await ec2Client.send(command);
+        console.log('Instancia apagada:', data);
+        res.send('Instancia apagada');
+    } catch (err) {
+        console.error('Error al apagar la instancia:', err);
+        res.status(500).send('Error al apagar la instancia');
+    }
 });
 
 // Inicia el servidor
-app.listen(3000, () => {
-    console.log('App escuchando en el puerto 3000');
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`App escuchando en el puerto ${port}`);
 });
