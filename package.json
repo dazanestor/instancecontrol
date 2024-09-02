@@ -9,7 +9,7 @@
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.641.0", 
     "body-parser": "^1.20.2",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
     "ejs": "^3.1.10"
   }
 }
