@@ -44,6 +44,11 @@
         button:hover {
             background-color: #3700b3;
         }
+
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -51,20 +56,43 @@
         <h1><%= pageTitle %></h1>
         <button id="startBtn">Encender EC2</button>
         <button id="stopBtn">Apagar EC2</button>
+        <div id="status">Obteniendo estado de la instancia...</div>
     </div>
 
     <script>
+        // Función para actualizar el estado de la instancia
+        function updateStatus() {
+            fetch('/status')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('status').innerText = data;
+                })
+                .catch(error => {
+                    document.getElementById('status').innerText = 'Error al obtener el estado';
+                    console.error('Error:', error);
+                });
+        }
+
+        // Llamar a updateStatus cada 5 segundos para actualizar el estado
+        setInterval(updateStatus, 5000);
+
+        // Botones para encender y apagar la instancia
         document.getElementById('startBtn').addEventListener('click', function() {
             fetch('/start', { method: 'POST' })
                 .then(response => response.text())
-                .then(data => alert(data));
+                .then(data => alert(data))
+                .then(() => updateStatus());
         });
 
         document.getElementById('stopBtn').addEventListener('click', function() {
             fetch('/stop', { method: 'POST' })
                 .then(response => response.text())
-                .then(data => alert(data));
+                .then(data => alert(data))
+                .then(() => updateStatus());
         });
+
+        // Obtener el estado inicial de la instancia al cargar la página
+        updateStatus();
     </script>
 </body>
 </html>
