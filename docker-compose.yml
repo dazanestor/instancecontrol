@@ -3,7 +3,7 @@ services:
     build: .
     ports:
       - "3003:3000"
-    enviromment:
+    environment:
       - AWS_REGION=$AWS_REGION
       - INSTANCE_ID=$INSTANCE_ID
       - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
