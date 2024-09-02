@@ -30,6 +30,18 @@ const getInstanceStatus = async () => {
     }
 };
 
+// Función para apagar la instancia
+const stopInstance = async () => {
+    try {
+        const params = { InstanceIds: [process.env.INSTANCE_ID] };
+        const command = new StopInstancesCommand(params);
+        const data = await ec2Client.send(command);
+        console.log('Instancia apagada automáticamente después de 60 minutos');
+    } catch (err) {
+        console.error('Error al apagar la instancia:', err);
+    }
+};
+
 // Ruta para renderizar la página principal
 app.get('/', (req, res) => {
     const pageTitle = process.env.PAGE_TITLE || 'Control de EC2';
@@ -51,20 +63,21 @@ app.post('/start', async (req, res) => {
     try {
         const params = { InstanceIds: [process.env.INSTANCE_ID] };
         const command = new StartInstancesCommand(params);
-        const data = await ec2Client.send(command);
+        await ec2Client.send(command);
         res.send('Instancia encendida');
+
+        // Iniciar un temporizador de 60 minutos para apagar la instancia automáticamente
+        setTimeout(stopInstance, 60 * 60 * 1000); // 60 minutos
     } catch (err) {
         console.error('Error al encender la instancia:', err);
         res.status(500).send('Error al encender la instancia.');
     }
 });
 
-// Ruta para apagar la instancia
+// Ruta para apagar la instancia manualmente
 app.post('/stop', async (req, res) => {
     try {
-        const params = { InstanceIds: [process.env.INSTANCE_ID] };
-        const command = new StopInstancesCommand(params);
-        const data = await ec2Client.send(command);
+        await stopInstance();
         res.send('Instancia apagada');
     } catch (err) {
         console.error('Error al apagar la instancia:', err);
